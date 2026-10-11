@@ -1,0 +1,33 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Dependencies and build output
+**/node_modules/
+**/dist/
+**/build/
+**/.vite/
+
+# Runtime and temporary files
+**/uploads/*
+!**/uploads/.gitkeep
+**/__raw_sse.txt
+**/*.log
+
+# Local test artifacts
+backend/sample-2page.pdf
+backend/__makepdf.mjs
+backend/__testextract.mjs
+backend/__testretrieve.mjs
+backend/__testflow.mjs
+
+# IDE and OS files
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
