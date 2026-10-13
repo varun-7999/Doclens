@@ -1,12 +1,13 @@
 import { FileText, MoreVertical, Plus, UploadCloud, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 
-export default function DocumentSidebar({ documents, activeDocumentId, onSelect, onUpload, onDelete, uploadProgress }) {
+export default function DocumentSidebar({ documents, activeDocumentId, onSelect, onUpload, onDelete, uploadProgress, mobileOpen, onClose }) {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const receiveFile = (file) => { if (file?.type !== 'application/pdf') return; onUpload(file); };
   return (
-    <aside className="flex w-full flex-col border-b border-[#2a2c34] bg-[#17181c] p-4 md:w-72 md:border-b-0 md:border-r">
+    <aside className={`${mobileOpen ? 'flex' : 'hidden'} fixed inset-y-0 left-0 z-40 w-[min(88vw,22rem)] flex-col overflow-y-auto border-r border-[#2a2c34] bg-[#17181c] p-4 shadow-2xl md:static md:flex md:w-72 md:shrink-0 md:border-r`}>
+      <div className="mb-3 flex justify-end md:hidden"><button type="button" onClick={onClose} className="rounded-lg px-2 py-1 text-sm text-[#989aa4] hover:bg-[#23252c]">Close</button></div>
       <div className="mb-5 flex items-center justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#b4b7c4]">Workspace</p><h1 className="mt-1 text-lg font-bold text-[#f2f2f5]">DocuLens <span className="text-[#f2bcc4]">AI</span></h1></div><div className="rounded-lg bg-[#e08282]/10 px-2 py-1 text-[10px] font-semibold text-[#b4b7c4]">ONLINE</div></div>
       <div onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(e) => { e.preventDefault(); setDragging(false); receiveFile(e.dataTransfer.files[0]); }} className={`rounded-2xl border border-dashed p-4 text-center transition ${dragging ? 'border-[#e08282] bg-[#241e22]' : 'border-[#2a2c34] bg-[#1c1e23]'}`}>
         <UploadCloud className="mx-auto mb-2 text-[#e08282]" size={24} /><p className="text-xs text-[#989aa4]">Drop a PDF here</p><button type="button" onClick={() => inputRef.current?.click()} className="mt-3 inline-flex items-center gap-1 rounded-lg bg-[#e08282] px-3 py-2 text-xs font-semibold text-[#111215] transition-colors hover:bg-[#d57373]"><Plus size={14} /> Choose file</button><input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => receiveFile(e.target.files[0])} />

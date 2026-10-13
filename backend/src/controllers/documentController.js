@@ -60,9 +60,8 @@ export async function uploadDocument(req, res) {
     }
 
     stage = 'generating embeddings';
-    for (const chunk of chunks) {
-      chunk.embedding = await generateEmbedding(chunk.content);
-    }
+    const embeddings = await Promise.all(chunks.map((chunk) => generateEmbedding(chunk.content)));
+    chunks.forEach((chunk, index) => { chunk.embedding = embeddings[index]; });
 
     stage = 'connecting to MongoDB';
     const db = await getDatabase();
