@@ -87,15 +87,31 @@ export async function streamGroundedAnswer(question, chunks, onChunk) {
     throw new TypeError('onChunk must be a function');
   }
 
-  const responseStream = await generateWithFallback((model) =>
-    getGoogleClient().models.generateContentStream({
-      model,
-      contents: buildGroundedPrompt(question, chunks)
-    })
-  );
+  let lastError;
+  for (const model of getGenerationModels()) {
+    let emittedText = false;
+    try {
+      const responseStream = await getGoogleClient().models.generateContentStream({
+        model,
+        contents: buildGroundedPrompt(question, chunks)
+      });
 
-  for await (const chunk of responseStream) {
-    const text = chunk.text;
-    if (text) await onChunk(text);
+      for await (const chunk of responseStream) {
+        const text = chunk.text;
+        if (text) {
+          emittedText = true;
+          await onChunk(text);
+        }
+      }
+      return;
+    } catch (error) {
+      lastError = error;
+      if (emittedText || !RETRYABLE_STATUS_CODES.has(getStatusCode(error))) {
+        throw error;
+      }
+      console.warn(`Gemini streaming model ${model} is temporarily unavailable; trying the next model`);
+    }
   }
+
+  throw lastError;
 }
