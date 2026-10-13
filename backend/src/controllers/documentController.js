@@ -44,7 +44,16 @@ export async function uploadDocument(req, res) {
     }
 
     stage = 'extracting PDF text';
-    const { pageCount, pages } = await extractPages(req.file.buffer);
+    let extracted;
+    try {
+      extracted = await extractPages(req.file.buffer);
+    } catch (error) {
+      console.error('PDF extraction failed:', error);
+      return res.status(422).json({
+        error: 'The uploaded file is not a valid or readable PDF'
+      });
+    }
+    const { pageCount, pages } = extracted;
     const chunks = chunkPages(pages);
     if (chunks.length === 0) {
       return res.status(422).json({ error: 'The PDF did not contain extractable text' });
