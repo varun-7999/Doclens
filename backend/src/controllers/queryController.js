@@ -14,6 +14,7 @@ function getAnswerErrorMessage(error) {
   const status = Number(error?.status || error?.code);
   if (status === 429) return 'The Gemini API rate limit was reached. Please try again shortly.';
   if (status === 503) return 'Gemini is temporarily unavailable. Please try again shortly.';
+  if (status === 401 || status === 403) return 'The Gemini API key is invalid or does not have permission to generate answers.';
   return error instanceof TypeError ? error.message : 'Failed to stream answer';
 }
 

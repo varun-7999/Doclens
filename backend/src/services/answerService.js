@@ -113,5 +113,16 @@ export async function streamGroundedAnswer(question, chunks, onChunk) {
     }
   }
 
-  throw lastError;
+  // Some hosted environments or provider incidents can reject streaming while
+  // regular generation remains available. Return the complete answer as one
+  // chunk so the user still receives a grounded response.
+  const response = await generateWithFallback((model) =>
+    getGoogleClient().models.generateContent({
+      model,
+      contents: buildGroundedPrompt(question, chunks)
+    })
+  );
+  const answer = response.text?.trim();
+  if (!answer) throw lastError || new Error('The model returned an empty answer');
+  await onChunk(answer);
 }
