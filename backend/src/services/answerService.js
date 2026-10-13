@@ -1,7 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 
-const DEFAULT_GENERATION_MODEL = 'gemini-2.5-flash';
-const FALLBACK_GENERATION_MODEL = 'gemini-2.5-flash-lite';
+const DEFAULT_GENERATION_MODEL = 'gemini-3.8-flash';
+const FALLBACK_GENERATION_MODEL = 'gemini-3.5-flash-lite';
 const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
 let googleClient;
 

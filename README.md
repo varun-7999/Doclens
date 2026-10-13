@@ -39,8 +39,8 @@ MONGODB_DB=doculens
 GOOGLE_API_KEY=your_google_api_key
 MONGODB_VECTOR_INDEX=vector_index
 RAG_RESULT_LIMIT=5
-GEMINI_MODEL=gemini-2.5-flash
-GEMINI_FALLBACK_MODEL=gemini-2.5-flash-lite
+GEMINI_MODEL=gemini-3.8-flash
+GEMINI_FALLBACK_MODEL=gemini-3.5-flash-lite
 ```
 
 Create a MongoDB Atlas Vector Search index named `vector_index` on `chunks.embedding` with 768 dimensions and cosine similarity.
