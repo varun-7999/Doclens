@@ -106,10 +106,11 @@ export async function streamGroundedAnswer(question, chunks, onChunk) {
       return;
     } catch (error) {
       lastError = error;
-      if (emittedText || !RETRYABLE_STATUS_CODES.has(getStatusCode(error))) {
-        throw error;
-      }
-      console.warn(`Gemini streaming model ${model} is temporarily unavailable; trying the next model`);
+      if (emittedText) throw error;
+      console.warn(`Gemini streaming model ${model} failed; trying fallback generation`, {
+        status: getStatusCode(error),
+        message: error?.message
+      });
     }
   }
 
