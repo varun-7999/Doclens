@@ -37,27 +37,32 @@ function chunkPages(pages) {
  * @param {import('express').Response} res
  */
 export async function uploadDocument(req, res) {
+  let stage = 'validating upload';
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'A PDF file is required' });
     }
 
+    stage = 'extracting PDF text';
     const { pageCount, pages } = await extractPages(req.file.buffer);
     const chunks = chunkPages(pages);
     if (chunks.length === 0) {
       return res.status(422).json({ error: 'The PDF did not contain extractable text' });
     }
 
+    stage = 'generating embeddings';
     for (const chunk of chunks) {
       chunk.embedding = await generateEmbedding(chunk.content);
     }
 
+    stage = 'connecting to MongoDB';
     const db = await getDatabase();
     const documents = db.collection('documents');
     const chunkCollection = db.collection('chunks');
     const createdAt = new Date();
 
     // Keep the original file so citations can open the real page later.
+    stage = 'storing original PDF';
     const fileId = await storePdf(req.file.buffer, req.file.originalname);
 
     const document = {
@@ -71,6 +76,7 @@ export async function uploadDocument(req, res) {
     };
 
     let documentResult;
+    stage = 'saving document metadata';
     try {
       documentResult = await documents.insertOne(document);
     } catch (error) {
@@ -78,6 +84,7 @@ export async function uploadDocument(req, res) {
       throw error;
     }
 
+    stage = 'saving document chunks';
     try {
       await chunkCollection.insertMany(chunks.map((chunk) => ({
         documentId: documentResult.insertedId,
@@ -100,8 +107,14 @@ export async function uploadDocument(req, res) {
       chunkCount: document.chunkCount
     });
   } catch (error) {
-    console.error('Document ingestion failed:', error);
-    return res.status(500).json({ error: 'Failed to process document' });
+    const status = Number(error?.status || error?.code);
+    const providerUnavailable = [429, 500, 502, 503, 504].includes(status);
+    console.error(`Document ingestion failed during ${stage}:`, error);
+    return res.status(500).json({
+      error: providerUnavailable
+        ? 'The embedding service is temporarily unavailable. Please try again shortly.'
+        : `Failed to process document while ${stage}`
+    });
   }
 }
 
